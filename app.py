@@ -52,4 +52,4 @@ def downloadFile():
     download_path = "data.xlsx"
     return send_file(download_path, as_attachment=True)
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=False) 
