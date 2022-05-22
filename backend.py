@@ -2,33 +2,37 @@ import pandas as pd
 import re
 import numpy as np
 
-#
-req_cols = ["Shipping Phone Number","Customer Name","Created at","Item Name" ,"Seller SKU","Unit Price","Paid Price","Variation"]
+# Columns
+req_cols = ["Shipping Phone Number","Customer Name","Created at","Item Name" ,"Seller SKU","Unit Price","Paid Price","Variation","Order Number"]
 
 # Reading the csv file
-df_new = pd.read_csv('~/test.csv' , sep=';' , encoding='utf-8' ,usecols=req_cols)
+df_new = pd.read_csv('test.csv' , sep=';' , encoding='utf-8' ,usecols=req_cols)
 
 
-#spliting variation data
-get_variation = df_new['Variation']
-for part in get_variation:
-        v = str(part)
-        data = re.split(r'[:,]' , v)
-        color = (data[1])
-        size =  (data[4])
+# Fabric Data 
+df_new['Fabric'] = df_new['Unit Price'].replace({310: 'Card', 330: 'Combed Dawah', 350: 'Combed Regular', 490: 'Viscos', 550: 'Pleated'})
 
-df_new[['Color' , 'Size']] = get_variation.str.split(',' ,expand=True)
+# Spliting Variation data
 
-#insert data
-df_new.insert(8 , "Payment Method" , "Credit")
-df_new.insert(9 , "Courier Type" , "Local")
-df_new.insert(10 , "Sales Type" , "MarketPlace Daraz")
-df_new.insert(11, "Billing Amount" , df_new['Unit Price'])
+# Color Columm
+color = df_new['Variation'].str.split(',' ,expand=True)[0]
+df_new['Color'] = color.str.split(':' , expand=True)[1]
 
-#Deleting Variation Column
+# Size Column
+size = df_new['Variation'].str.split(',' ,expand=True)[1]
+df_new['Size'] = size.str.split(':' ,expand=True)[2]
+
+# Deleting Variation Column
 del df_new['Variation']
 
-#changing headers name
+# Insert data
+df_new.insert(11, "Sales Type" , "MarketPlace Daraz")
+df_new.insert(12, "Due Amount" , df_new['Unit Price'])
+df_new.insert(13 , "Payment Method" , "Credit")
+df_new.insert(14, "Courier Type" , "Local")
+df_new.insert(15 , "Daraz Order No" , df_new['Order Number'])
+
+# Changing headers name
 df_after_rename = df_new.rename(columns={
 "Shipping Phone Number" : "Contact Number",
 "Customer Name" : "Customer Name",
@@ -39,8 +43,8 @@ df_after_rename = df_new.rename(columns={
 "Paid Price" : "Due Amount"
 })
 
-# saving xlsx file
-write_excel_file = pd.ExcelWriter('/storage/emulated/0/data.xlsx')
+# Saving xlsx file
+write_excel_file = pd.ExcelWriter('data.xlsx')
 
 df_after_rename.to_excel(write_excel_file,index=False,index_label='Order Serial',sheet_name="CRM Sheet")
 
